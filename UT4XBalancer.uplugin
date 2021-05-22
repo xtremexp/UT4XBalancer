@@ -1,0 +1,23 @@
+{
+	"FileVersion" : 3,
+	
+	"FriendlyName" : "UT4X Balancer",
+	"Version" : 1,
+	"VersionName" : "1.0",
+	"CreatedBy" : "XtremeXp",
+	"CreatedByURL" : "",
+	"EngineVersion" : "4.15.0",
+	"Description" : "Team balancer for Unreal Tournament/UT4 game",
+	"Category" : "UnrealTournament.Mutator",
+	"EnabledByDefault" : false,
+	"CanContainContent" : true,
+	
+	"Modules" :
+	[
+		{
+			"Name" : "UT4XBalancer",
+			"Type" : "Runtime",
+			"WhitelistPlatforms" : [ "Win64", "Linux" ]
+		}
+	]
+}
