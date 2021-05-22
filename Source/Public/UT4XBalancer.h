@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include "Core.h"
 #include "UnrealTournament.h"
 #include "UTMutator.h"
@@ -15,26 +14,10 @@ class AUT4XBalancer : public AUTMutator
 	GENERATED_UCLASS_BODY()
 
 	/*
-	* If true team balancer will be enabled
+	* If true team balancer is enabled
 	*/
 	UPROPERTY(Config = UT4XBalancer)
 	bool TeamBalancerEnabled = true;
-
-	/*
-	* Time until player is warned to be AFK
-	*/
-	UPROPERTY(Config = UT4XBalancer)
-	int AFKWarnTime = 60;
-
-	/*
-	* Time until player is kick 
-	*/
-	UPROPERTY(Config = UT4XBalancer)
-	int AFKKickTime = 90;
-
-	UPROPERTY(Config = UT4XBalancer)
-	bool AFKCheckerEnabled = true;
-
 
 	void Start(UWorld* World);
 	void Stop();
@@ -69,12 +52,6 @@ private:
 	bool SwitchPlayerToTeam(AController* C, int8 NewTeamIdx, AUTTeamGameMode* TeamGM, AUTGameState* UTGameState);
 
 	/*
-	* Check players idling and if so kick them 
-	* depending 
-	*/
-	void CheckPlayersIdling();
-
-	/*
 	* Executed by timer after 20s when a player logout
 	*/
 	void CheckAndBalanceTeams();
@@ -93,6 +70,4 @@ private:
 	FTimerHandle CheckUnbalancedTeamsTimerHandle;
 
 	int32 GetTeamWinningIdx();
-
-	void LogTeamInfo();
 };

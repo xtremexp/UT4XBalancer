@@ -1,4 +1,3 @@
-
 namespace UnrealBuildTool.Rules
 {
 	public class UT4XBalancer : ModuleRules

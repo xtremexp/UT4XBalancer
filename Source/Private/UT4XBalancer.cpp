@@ -31,22 +31,6 @@ void AUT4XBalancer::Init_Implementation(const FString& Options)
 
 	TeamBalancerEnabled = (UGameplayStatics::GetIntOption(Options, TEXT("TeamBalancerEnabled"), TeamBalancerEnabled) == 0) ? false : true;
 	
-	
-	bool bCoreIgnoreIdlePlayers = (UGameplayStatics::GetIntOption(Options, TEXT("IgnoreIdle"), 0) == 0) ? false : true;
-
-	if (AFKCheckerEnabled) {
-
-		// if we want to use our custom ignoreidle, the core one must be disabled
-		// the only way to do so is via game option parameter (impossible via c++)
-		// check idling players each 5 seconds
-		if(bCoreIgnoreIdlePlayers){
-			GetWorld()->GetTimerManager().SetTimer(CheckPlayerIdlingTimerHandle, this, &AUT4XBalancer::CheckPlayersIdling, 5.f, true);
-		} else {
-			UE_LOG(UT, Log, TEXT("UT4X afk checker only works if core IgnoreIdle=0 gameoption is set."));
-		}
-	}
-
-
 	Super::Init_Implementation(Options);
 }
 
@@ -85,16 +69,6 @@ void AUT4XBalancer::Mutate_Implementation(const FString& MutateString, APlayerCo
 					TeamBalancerEnabled = false;
 					SaveConfig();
 					UTSender->ClientSay(UTPS, TEXT("Team balancer has been disabled."), ChatDestinations::System);
-				}
-				else if (Tokens[0] == "enableafkchecker") {
-					AFKCheckerEnabled = true;
-					SaveConfig();
-					UTSender->ClientSay(UTPS, TEXT("AFK checker has been enabled."), ChatDestinations::System);
-				}
-				else if (Tokens[0] == "disableafkchecker") {
-					AFKCheckerEnabled = false;
-					SaveConfig();
-					UTSender->ClientSay(UTPS, TEXT("AFK checker has been disabled."), ChatDestinations::System);
 				}
 			}
 			
@@ -227,10 +201,6 @@ void AUT4XBalancer::NotifyMatchStateChange_Implementation(FName NewState)
 	else if (NewState == MatchState::PlayerIntro && FlagRunGM && TeamBalancerEnabled) {
 		BalanceTeamsAtStart();
 	}
-	// match ended clear check afk players timer
-	else if (NewState == MatchState::WaitingPostMatch) {
-		GetWorldTimerManager().ClearTimer(CheckPlayerIdlingTimerHandle);
-	}
 }
 
 // TODO handle teams with bots
@@ -308,7 +278,7 @@ bool AUT4XBalancer::BalanceTeamsAtStart() {
 		// because the upper algorythm make best player in red team
 		// and worst in blue team (if same player count on both teams)
 		// red team is nearly always more powered so we need to switch one extra guy to balance
-		if (SortedPlayersByElo.Num() >= 10) {
+		if (SortedPlayersByElo.Num() >= 6) {
 			// if red total red elo is 11000 and total blue elo is 10000
 			// there is still a 10% gap which might be critical !
 
@@ -378,7 +348,6 @@ bool AUT4XBalancer::BalanceTeamsAtStart() {
 		FString Msg2 = FString::Printf(TEXT("[UT4X Balancer v1.2] - Avg Elo: Red %i - Blue %i"), averageEloRed, averageEloBlue);
 		BroadcastMessageToPlayers(Msg2, ChatDestinations::System);
 
-		LogTeamInfo();
 
 		return true;
 	}
@@ -435,9 +404,6 @@ void AUT4XBalancer::CheckAndBalanceTeams() {
 		}
 
 		if (PlayerToSwap && PlayerToSwap->PlayerState && NewTeamSwapIdx > -1) {
-
-			// testing - debug
-			LogTeamInfo();
 
 			UE_LOG(UT, Log, TEXT("Balancer wants to switch %s to team %i to balance teams"), *PlayerToSwap->PlayerState->PlayerName, NewTeamSwapIdx);
 
@@ -600,65 +566,6 @@ bool AUT4XBalancer::SwitchPlayerToTeam(AController* C, int8 NewTeamIdx, AUTTeamG
 	}
 
 	return false;
-}
-
-// executed each 5 seconds, must be quick !
-void AUT4XBalancer::CheckPlayersIdling() {
-
-	AUTGameMode* GM = Cast<AUTGameMode>(GetWorld()->GetAuthGameMode());
-
-	if (GM && GM->GetMatchState() == MatchState::InProgress) {
-
-		AUTGameState* UTGameState = GM->UTGameState;
-
-		// no kick for lan games
-		if (UTGameState && GM->GameSession && !GM->bIsLANGame)
-		{
-			for (int32 i = 0; i < UTGameState->PlayerArray.Num(); i++)
-			{
-				AUTPlayerState* UTPS = Cast<AUTPlayerState>(UTGameState->PlayerArray[i]);
-
-				if (UTPS) {
-
-					bool IsPlayerIdling = UTPS && !UTPS->bIsABot && !UTPS->bOnlySpectator && !UTPS->bOutOfLives && !UTPS->bIsInactive;
-
-					if (!IsPlayerIdling) {
-						continue;
-					}
-					
-					// kick idling player if it has reached max inactive time
-					int AFKDuration = GetWorld()->GetTimeSeconds() - UTPS->LastActiveTime;
-					bool KickPlayerIdling = IsPlayerIdling && (AFKDuration >= AFKKickTime);
-
-					// TODO warn player after X seconds
-					if (KickPlayerIdling && Cast<APlayerController>(UTPS->GetOwner()))
-					{
-
-						AUTPlayerController* Controller = Cast<AUTPlayerController>(UTPS->GetOwner());
-						if (Controller)
-						{
-							// lobby instance - make player returns to lobby
-							if (GM->IsGameInstanceServer())
-							{
-								Controller->ClientReturnToLobby(true, true);
-
-								FString Msg = FString::Printf(TEXT("%s has been kicked by UT4X-Bot. (AFK >= %i s.)"), *UTPS->PlayerName, AFKKickTime);
-								BroadcastMessageToPlayers(Msg, ChatDestinations::System);
-							}
-							// dedicated server - make player returns to main menu
-							else if (GM->GameSession != nullptr)
-							{
-								if (GM->GameSession->KickPlayer(Controller, NSLOCTEXT("General", "IdleKick", "You were kicked for being idle."))) {
-									FString Msg = FString::Printf(TEXT("%s has been kicked by UT4X-Bot. (AFK >= %i s.)"), *UTPS->PlayerName, AFKKickTime);
-									BroadcastMessageToPlayers(Msg, ChatDestinations::System);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 void AUT4XBalancer::BroadcastMessageToPlayers(FString& Msg, FName ChatDestination) {
