@@ -7,7 +7,15 @@
 #include "UT4XBalancer.generated.h"
 
 
-UCLASS(Config=UT4XBalancer, Blueprintable, Meta = (ChildCanTick))
+enum EBalanceType
+{
+	BT_LAST_TO_JOIN,
+	BT_LAST_TO_JOIN_ALIVE,
+	BT_ELO_BEST_MATCH,
+	BT_BBB
+};
+
+UCLASS(Config= UT4X, Blueprintable, Meta = (ChildCanTick))
 class AUT4XBalancer : public AUTMutator
 {
 
@@ -16,7 +24,7 @@ class AUT4XBalancer : public AUTMutator
 	/*
 	* If true team balancer is enabled
 	*/
-	UPROPERTY(Config = UT4XBalancer)
+	UPROPERTY(Config = UT4X)
 	bool TeamBalancerEnabled = true;
 
 	void Start(UWorld* World);

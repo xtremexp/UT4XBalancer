@@ -8,7 +8,7 @@
 	"EngineVersion" : "4.15.0",
 	"Description" : "Team balancer for Unreal Tournament/UT4 game",
 	"Category" : "UnrealTournament.Mutator",
-	"EnabledByDefault" : false,
+	"EnabledByDefault" : true,
 	"Modules" :
 	[
 		{

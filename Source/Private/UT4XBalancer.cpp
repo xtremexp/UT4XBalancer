@@ -1,5 +1,6 @@
 #include "UT4XBalancer.h"
 #include "UTFlagRunGame.h"
+#include "UTVoiceChatTokenFeature.h"
 
 // folder name of this module in plugins folder
 #define DEBUGLOG Verbose
@@ -139,7 +140,9 @@ void AUT4XBalancer::PostPlayerInit_Implementation(AController* C) {
 					}
 				}
 
-				if (NewTeamIdx != -1 && TestFeatureEnabled) {
+
+				// FIXME - disabled not working - always switch to wrong team for some unknown reason
+				if (NewTeamIdx != -1 && false) {
 					SwitchPlayerToTeam(PC, NewTeamIdx, TeamGM, UTGameState);
 				}
 			}
@@ -408,7 +411,7 @@ void AUT4XBalancer::CheckAndBalanceTeams() {
 			UE_LOG(UT, Log, TEXT("Balancer wants to switch %s to team %i to balance teams"), *PlayerToSwap->PlayerState->PlayerName, NewTeamSwapIdx);
 
 			if (SwitchPlayerToTeam(PlayerToSwap, NewTeamSwapIdx, TeamGM, UTGameState)) {
-				FString Msg = FString::Printf(TEXT("[UT4X Balancer v1.2] %s has been swapped to balance teams. (last alive player to join)"), *PlayerToSwap->PlayerState->PlayerName, AFKKickTime);
+				FString Msg = FString::Printf(TEXT("[UT4X Balancer v1.2] %s has been swapped to balance teams. (last alive player to join)"), *PlayerToSwap->PlayerState->PlayerName);
 				BroadcastMessageToPlayers(Msg, ChatDestinations::System);
 			}
 		}
