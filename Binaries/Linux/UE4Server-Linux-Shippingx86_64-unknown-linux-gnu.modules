@@ -1,0 +1,8 @@
+{
+	"Changelist" : 3228288,
+	"BuildId" : "c2177184-da42-452c-9cf6-d2d3f345f4c1",
+	"Modules" : 
+	{
+		"UT4XBalancer" : "libUE4Server-UT4XBalancer-Linux-Shipping.so"
+	}
+}

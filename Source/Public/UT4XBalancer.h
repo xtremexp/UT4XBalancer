@@ -41,8 +41,6 @@ class AUT4XBalancer : public AUTMutator
 	/* For log player exit info */
 	void NotifyLogout_Implementation(AController* C) override;
 
-	void ModifyLogin_Implementation(UPARAM(ref) FString& Portal, UPARAM(ref) FString& Options) override;
-
 	void NotifyMatchStateChange_Implementation(FName NewState) override;
 
 
