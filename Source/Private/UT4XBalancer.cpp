@@ -193,17 +193,20 @@ MapVoteHappening
 */
 void AUT4XBalancer::NotifyMatchStateChange_Implementation(FName NewState)
 {
+	if (TeamBalancerEnabled) {
+		AUTFlagRunGame* FlagRunGM = Cast<AUTFlagRunGame>(GetWorld()->GetAuthGameMode());
 
-	AUTFlagRunGame* FlagRunGM = Cast<AUTFlagRunGame>(GetWorld()->GetAuthGameMode());
+		// balance teams for all gamemode but blitz (because never reaches this matchstate / prob a vanilla bug)
+		if (NewState == MatchState::CountdownToBegin && FlagRunGM == NULL) {
+			BalanceTeamsAtStart();
+		}
+		// blitz gamemode never triggers CountdownToBegin matchstate so have to trigger at this next match state
+		else if (NewState == MatchState::PlayerIntro && FlagRunGM) {
+			BalanceTeamsAtStart();
+		}
+	}
 
-	// balance teams for all gamemode but blitz (because never reaches this matchstate / prob a vanilla bug)
-	if (NewState == MatchState::CountdownToBegin && FlagRunGM == NULL && TeamBalancerEnabled) {
-		BalanceTeamsAtStart();
-	}
-	// blitz gamemode never triggers CountdownToBegin matchstate so have to trigger at this next match state
-	else if (NewState == MatchState::PlayerIntro && FlagRunGM && TeamBalancerEnabled) {
-		BalanceTeamsAtStart();
-	}
+	Super::NotifyMatchStateChange_Implementation(NewState);
 }
 
 // TODO handle teams with bots
