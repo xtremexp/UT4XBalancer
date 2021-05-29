@@ -372,18 +372,23 @@ bool AUT4XBalancer::CanBalanceTeams() {
 	AUTTeamGameMode* TeamGM = Cast<AUTTeamGameMode>(GetWorld()->GetAuthGameMode());
 
 	if (TeamGM) {
+
+		// private games settings
+		if ((TeamGM->bIsLANGame || TeamGM->bPrivateMatch || !TeamGM->ServerPassword.IsEmpty()) && !BalanceTeamsInPrivateGamesEnabled) {
+			return false;
+		}
+
 		return TeamBalancerEnabled 
 			&& (TeamGM->NumPlayers + TeamGM->NumBots) >= 4
 			&& !TeamGM->bIsVSAI 
 			&& TeamGM->bBalanceTeams
-			&& !TeamGM->bRequirePassword 
 			&& TeamGM->Teams.Num() == 2;
 	}
 
 	return false;
 }
 
-
+// experimental function disabled to check teams are even after game has started (if some player leave for example)
 void AUT4XBalancer::CheckAndBalanceTeams() {
 
 	AUTGameState* UTGameState = GetWorld()->GetGameState<AUTGameState>();
@@ -601,10 +606,8 @@ int32 AUT4XBalancer::GetTeamWinningIdx() {
 		if (FlagRunGM) {
 			// TODO TODO 
 		}
-		else {
-			if (UTGameState->Teams[0]->Score > UTGameState->Teams[1]->Score) {
+		else if (UTGameState->Teams[0]->Score > UTGameState->Teams[1]->Score) {
 				return 0;
-			}
 		}
 	}
 
