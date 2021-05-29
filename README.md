@@ -19,7 +19,7 @@ Thomas 'WinterIsComing' P.
 
 ### Version History
 
-- 1.0 - 29/05/2021 - First version
+- 1.2 - 29/05/2021 - First public version
 
 ### License
 
