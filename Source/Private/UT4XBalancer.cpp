@@ -9,7 +9,7 @@ AUT4XBalancer::AUT4XBalancer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 
-	DisplayName = FText::FromString("UT4X Balancer 1.2.0");
+	DisplayName = FText::FromString("UT4X Balancer 1.2.1");
 	Author = FText::FromString("Thomas 'XtremeXp/Winter' P.");
 	Description = FText::FromString("Team balancer module for Unreal Tournament 4 (2017) ");
 }
@@ -30,7 +30,7 @@ void AUT4XBalancer::Init_Implementation(const FString& Options)
 {
 	UE_LOG(UT, Log, TEXT("UT4X team balancer mutator init %s "), *Options);
 
-	TeamBalancerEnabled = (UGameplayStatics::GetIntOption(Options, TEXT("TeamBalancerEnabled"), TeamBalancerEnabled) == 0) ? false : true;
+	UT4XBalancerEnabled = (UGameplayStatics::GetIntOption(Options, TEXT("UT4XBalancerEnabled"), UT4XBalancerEnabled) == 0) ? false : true;
 	
 	Super::Init_Implementation(Options);
 }
@@ -61,15 +61,15 @@ void AUT4XBalancer::Mutate_Implementation(const FString& MutateString, APlayerCo
 						UTSender->ClientSay(UTPS, TEXT("Could not balance teams (not a team game mode, disabled or not enough players)."), ChatDestinations::System);
 					}
 				}
-				else if (Tokens[0] == "enableteambalancer") {
-					TeamBalancerEnabled = true;
+				else if (Tokens[0] == "enableut4xbalancer") {
+					UT4XBalancerEnabled = true;
 					SaveConfig();
-					UTSender->ClientSay(UTPS, TEXT("Team balancer has been enabled."), ChatDestinations::System);
+					UTSender->ClientSay(UTPS, TEXT("UT4X Team balancer has been enabled."), ChatDestinations::System);
 				}
-				else if (Tokens[0] == "disableteambalancer") {
-					TeamBalancerEnabled = false;
+				else if (Tokens[0] == "disableut4xbalancer") {
+					UT4XBalancerEnabled = false;
 					SaveConfig();
-					UTSender->ClientSay(UTPS, TEXT("Team balancer has been disabled."), ChatDestinations::System);
+					UTSender->ClientSay(UTPS, TEXT("UT4X Team balancer has been disabled."), ChatDestinations::System);
 				}
 			}
 			
@@ -163,7 +163,7 @@ void AUT4XBalancer::NotifyLogout_Implementation(AController* C) {
 		AUTTeamGameMode* TeamGM = Cast<AUTTeamGameMode>(GetWorld()->GetAuthGameMode());
 
 		// once player leave check and fix if teams are unbalanced
-		if (TeamBalancerEnabled && TeamGM && TeamGM->GameState && TeamGM->HasMatchStarted() && !TeamGM->HasMatchEnded()) {
+		if (UT4XBalancerEnabled && TeamGM && TeamGM->GameState && TeamGM->HasMatchStarted() && !TeamGM->HasMatchEnded()) {
 
 			if (GetWorldTimerManager().IsTimerActive(CheckUnbalancedTeamsTimerHandle)) {
 				GetWorldTimerManager().ClearTimer(CheckUnbalancedTeamsTimerHandle);
@@ -193,7 +193,7 @@ MapVoteHappening
 */
 void AUT4XBalancer::NotifyMatchStateChange_Implementation(FName NewState)
 {
-	if (TeamBalancerEnabled) {
+	if (UT4XBalancerEnabled) {
 		AUTFlagRunGame* FlagRunGM = Cast<AUTFlagRunGame>(GetWorld()->GetAuthGameMode());
 
 		// balance teams for all gamemode but blitz (because never reaches this matchstate / prob a vanilla bug)
@@ -284,7 +284,7 @@ bool AUT4XBalancer::BalanceTeamsAtStart() {
 		// because the upper algorythm make best player in red team
 		// and worst in blue team (if same player count on both teams)
 		// red team is nearly always more powered so we need to switch one extra guy to balance
-		if (SortedPlayersByElo.Num() >= 6) {
+		if (SortedPlayersByElo.Num() >= 4) {
 			// if red total red elo is 11000 and total blue elo is 10000
 			// there is still a 10% gap which might be critical !
 
@@ -348,10 +348,10 @@ bool AUT4XBalancer::BalanceTeamsAtStart() {
 		}
 
 
-		FString Msg1 = FString::Printf(TEXT("[UT4X Balancer v1.2] - Tot Elo: Red %i - Blue %i - (%ip vs %ip)"), totalEloRed, totalEloBlue, Teams[0]->GetSize(), Teams[1]->GetSize());
+		FString Msg1 = FString::Printf(TEXT("[UT4X Balancer v1.2.1] - Tot Elo: Red %i - Blue %i - (%ip vs %ip)"), totalEloRed, totalEloBlue, Teams[0]->GetSize(), Teams[1]->GetSize());
 		BroadcastMessageToPlayers(Msg1, ChatDestinations::System);
 
-		FString Msg2 = FString::Printf(TEXT("[UT4X Balancer v1.2] - Avg Elo: Red %i - Blue %i"), averageEloRed, averageEloBlue);
+		FString Msg2 = FString::Printf(TEXT("[UT4X Balancer v1.2.1] - Avg Elo: Red %i - Blue %i"), averageEloRed, averageEloBlue);
 		BroadcastMessageToPlayers(Msg2, ChatDestinations::System);
 
 
@@ -374,14 +374,14 @@ bool AUT4XBalancer::CanBalanceTeams() {
 	if (TeamGM) {
 
 		// private games settings
-		if ((TeamGM->bIsLANGame || TeamGM->bPrivateMatch || !TeamGM->ServerPassword.IsEmpty()) && !BalanceTeamsInPrivateGamesEnabled) {
+		if ((TeamGM->bIsLANGame || TeamGM->bPrivateMatch || !TeamGM->ServerPassword.IsEmpty()) && !UT4XBalancerEnabledInPrivateGames) {
 			return false;
 		}
 
-		return TeamBalancerEnabled 
+		return UT4XBalancerEnabled
 			&& (TeamGM->NumPlayers + TeamGM->NumBots) >= 4
 			&& !TeamGM->bIsVSAI 
-			&& TeamGM->bBalanceTeams
+			//&& TeamGM->bBalanceTeams
 			&& TeamGM->Teams.Num() == 2;
 	}
 
@@ -419,7 +419,7 @@ void AUT4XBalancer::CheckAndBalanceTeams() {
 			UE_LOG(UT, Log, TEXT("Balancer wants to switch %s to team %i to balance teams"), *PlayerToSwap->PlayerState->PlayerName, NewTeamSwapIdx);
 
 			if (SwitchPlayerToTeam(PlayerToSwap, NewTeamSwapIdx, TeamGM, UTGameState)) {
-				FString Msg = FString::Printf(TEXT("[UT4X Balancer v1.2] %s has been swapped to balance teams. (last alive player to join)"), *PlayerToSwap->PlayerState->PlayerName);
+				FString Msg = FString::Printf(TEXT("[UT4X Balancer v1.2.1] %s has been swapped to balance teams. (last alive player to join)"), *PlayerToSwap->PlayerState->PlayerName);
 				BroadcastMessageToPlayers(Msg, ChatDestinations::System);
 			}
 		}

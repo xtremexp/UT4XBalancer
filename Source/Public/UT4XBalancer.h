@@ -25,13 +25,13 @@ class AUT4XBalancer : public AUTMutator
 	* If true team balancer is enabled
 	*/
 	UPROPERTY(Config = UT4X)
-	bool TeamBalancerEnabled = true;
+	bool UT4XBalancerEnabled = true;
 
 	/*
 	* Whether team balancer is enabled for private games (passworded, lan, ...)
 	*/
 	UPROPERTY(Config = UT4X)
-	bool BalanceTeamsInPrivateGamesEnabled = false;
+	bool UT4XBalancerEnabledInPrivateGames = false;
 
 	void Start(UWorld* World);
 	void Stop();

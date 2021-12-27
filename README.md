@@ -19,6 +19,14 @@ Thomas 'WinterIsComing' P.
 
 ### Version History
 
+- 1.2.1 - 27/12/2021
+  - Modified game options TeamBalancerEnabled to UT4XBalancerEnabled to not confuse with generic ut4 option "BalanceTeams"
+  - UT4XBalancer is now no longer disabled if BalanceTeams=false
+  - Changed min player count from 6 to 4 to balance teams
+  - Modified game options BalanceTeamsInPrivateGames to UT4XBalancerEnabledInPrivateGames
+  - Modified command "mutate enableteambalancer" -> "mutate enableut4xbalancer"
+  - Modified command "mutate disableteambalancer" -> "mutate disableut4xbalancer"
+
 - 1.2 - 29/05/2021 - First public version
 
 ### License
@@ -73,16 +81,18 @@ If file is not present you can create it with this content (see /Config/DefaultU
 
 ```ini
 [/Script/UT4XBalancer.UT4XBalancer]
-TeamBalancerEnabled=True
-BalanceTeamsInPrivateGamesEnabled=False
+UT4XBalancerEnabled=True
+UT4XBalancerEnabledInPrivateGamesEnabled=False
 ```
 
-| Property                          | Default Value | Description                                            |
-| --------------------------------- | ------------- | ------------------------------------------------------ |
-| TeamBalancerEnabled               | True          | Activate team balancer                                 |
-| BalanceTeamsInPrivateGamesEnabled | False         | If true private games will have team balancer enabled. |
+| Property                                 | Default Value | Description                                            |
+| ---------------------------------------- | ------------- | ------------------------------------------------------ |
+| UT4XBalancerEnabled                      | True          | If true ut4x team balancer will be enabled else not.   |
+| UT4XBalancerEnabledInPrivateGamesEnabled | False         | If true private games will have team balancer enabled. |
 
 These values can be modified modifying UT4X.ini file as seen before.
+
+Note: BalanceTeams generic ut4 option is not linked with ut4x balancer.
 
 ## Commands
 
@@ -90,11 +100,11 @@ As a logged admin (command: "rconauth mypassword"), you can enable or disable mu
 
 Enable TeamBalancer:
 
-`mutate enableteambalancer`
+`mutate enableut4xbalancer`
 
 Disable KickIdlers:
 
-`mutate disableteambalancer`
+`mutate disableut4xbalancer`
 
 Force team balance and randomization:
 
