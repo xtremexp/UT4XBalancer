@@ -1,10 +1,6 @@
 # UT4X-TeamBalancer
 UT4 plugin mutator for balancing teams at start.
 
-!!! Important (03/02/2023) !!!
-
-**Since Epic Games master shut down on 24/01/2023, balancer is not working properly for now with the new community [UT4 Master Server](https://github.com/timiimit/UT4MasterServer)
-since it relies on ELO ranking to balance teams and this functionality is not yet implemented by the new master server.**
 
 ## Information
 
